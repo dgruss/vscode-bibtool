@@ -2,6 +2,7 @@
   "name": "bibtool",
   "displayName": "BibTool",
   "description": "Interact with BibTool to look up bib entries on a remote server",
+  "repository": "https://github.com/dgruss/vscode-bibtool",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
