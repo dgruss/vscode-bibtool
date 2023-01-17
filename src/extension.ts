@@ -31,11 +31,11 @@ class MessageItem implements vscode.QuickPickItem {
 	constructor(public entry: string) {
     let entries = entry.replace(RegExp(",\n","g"),"@").split("@");
     let label = entries[0].split("{")[1];
-    let titleindex = entries.findIndex((element)=>(element.trim().startsWith("title")))
+    let titleindex = entries.findIndex((element)=>(element.trim().startsWith("title")));
     let title = entries[titleindex];
     delete entries[titleindex];
     title = title.substring(title.indexOf("{")+1,title.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
-    let authorindex = entries.findIndex((element)=>(element.trim().startsWith("author")))
+    let authorindex = entries.findIndex((element)=>(element.trim().startsWith("author")));
     let author = entries[authorindex];
     delete entries[authorindex];
     author = author.substring(author.indexOf("{")+1,author.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
@@ -51,14 +51,14 @@ export function deactivate() {}
  */
 export async function showQuickPick(options:string[]) {
   let optionItems:MessageItem[] = [];
-  options.forEach(function (value) {optionItems.push(new MessageItem(value))});
+  options.forEach(function (value) {optionItems.push(new MessageItem(value));});
 	let i = 0;
 	const result = await vscode.window.showQuickPick(optionItems, {
     //canPickMany: true,
     ignoreFocusOut: true,
     matchOnDetail: true,
 	});
-	const result_id = result?result.label.split("]")[0].substring(1):'';
+	const resultId = result?result.label.split("]")[0].substring(1):'';
   const editor = vscode.window.activeTextEditor;
 
   if (editor) {
@@ -66,7 +66,7 @@ export async function showQuickPick(options:string[]) {
     const selection = editor.selection;
 
     editor.edit(editBuilder => {
-      editBuilder.insert(selection.anchor,result_id);
+      editBuilder.insert(selection.anchor,resultId);
     });
   }
 }
@@ -81,7 +81,20 @@ export async function showInputBox() {
   });
   const { execFile } = require('child_process');
   let output:string = "";
-  const runcmd = execFile("make", ["bib",result], { cwd: "." });
+  let cwdPath:string = "";
+  if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0)
+  {
+    cwdPath = vscode.workspace.workspaceFolders!.at(0)!.uri.path;
+  }
+  else if (vscode.workspace.workspaceFile)
+  {
+    cwdPath = vscode.workspace.workspaceFile.fsPath;
+  }
+  else
+  {
+    return;
+  }
+  const runcmd = execFile("make", ["bib",result], {cwd: cwdPath});
   runcmd.stdout.on('data', (data: Uint8Array) => {
     output += data;
   });
