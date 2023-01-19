@@ -31,14 +31,22 @@ class MessageItem implements vscode.QuickPickItem {
 	constructor(public entry: string) {
     let entries = entry.replace(RegExp(",\n","g"),"@").split("@");
     let label = entries[0].split("{")[1];
-    let titleindex = entries.findIndex((element)=>(element.trim().startsWith("title")));
-    let title = entries[titleindex];
-    delete entries[titleindex];
-    title = title.substring(title.indexOf("{")+1,title.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
-    let authorindex = entries.findIndex((element)=>(element.trim().startsWith("author")));
-    let author = entries[authorindex];
-    delete entries[authorindex];
-    author = author.substring(author.indexOf("{")+1,author.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
+    let title = "";
+    let titleindex = entries.findIndex((element)=>(element?.trim().startsWith("title")));
+    if (titleindex >= 0)
+    {
+      title = entries[titleindex];
+      delete entries[titleindex];
+      title = title.substring(title.indexOf("{")+1,title.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
+    }
+    let author = "";
+    let authorindex = entries.findIndex((element)=>(element?.trim().startsWith("author")));
+    if (authorindex >= 0)
+    {
+      author = entries[authorindex];
+      delete entries[authorindex];
+      author = author.substring(author.indexOf("{")+1,author.lastIndexOf("}")).replace(RegExp("[{}]","g"),"");
+    }
     this.label = "[" + label + "] " + title;
     this.detail = author + " " + entries.slice(1).join(",").replace(RegExp("[{}]","g"),"");
 	}
@@ -86,14 +94,23 @@ export async function showInputBox() {
   {
     cwdPath = vscode.workspace.workspaceFolders!.at(0)!.uri.path;
   }
-  else if (vscode.workspace.workspaceFile)
+  else if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName)
   {
-    cwdPath = vscode.workspace.workspaceFile.fsPath;
+    cwdPath = vscode.window.activeTextEditor.document.fileName;
+    if (cwdPath.indexOf('\\') >= 0)
+    {
+      cwdPath = cwdPath.split("\\").slice(0,-1).join("\\");
+    }
+    if (cwdPath.indexOf('/') >= 0)
+    {
+      cwdPath = cwdPath.split("/").slice(0,-1).join("/");
+    }
   }
   else
   {
     return;
   }
+
   const runcmd = execFile("make", ["bib",result], {cwd: cwdPath});
   runcmd.stdout.on('data', (data: Uint8Array) => {
     output += data;
